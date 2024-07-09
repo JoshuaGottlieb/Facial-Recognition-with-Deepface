@@ -1,1 +1,1 @@
-# Facial-Detection-with-Deepface
+# Facial-Recognition-with-Deepface
