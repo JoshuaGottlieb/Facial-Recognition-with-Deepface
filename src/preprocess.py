@@ -7,6 +7,7 @@ from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 from retinaface.commons.postprocess import rotate_facial_area
 from retinaface import RetinaFace
+from . import deepvectorizer as dp
 
 def normal_to_pixel(x, y, w, h, invert = False):
     """
@@ -528,6 +529,7 @@ class ImagePreprocessor:
         self.pad_color = None
         self.error_code = None
         self.error_string = None
+        self.vectorizer = None
         
         return
 
@@ -577,7 +579,7 @@ class ImagePreprocessor:
     
     def preprocess_image(self, alignment_backend = ['dlib', 'retinaface', 'mediapipe'],
                          crop_backend = ['mediapipe', 'retinaface', 'dlib'],
-                         resize_kws = {'end_dim': (152, 152), 'color': (0, 0, 0), 'pad': True},
+                         end_dim = (152, 152), color = (0, 0, 0), pad = True,
                          steps = ['align', 'crop', 'resize']):
     
         if type(steps) == str:
@@ -596,9 +598,9 @@ class ImagePreprocessor:
         self.aligned_image = self.image.copy()
         self.cropped_image = self.image.copy()
         self.resized_image = self.image.copy()
-        self.resize_dim = resize_kws['end_dim']
-        self.pad = resize_kws['pad']
-        self.pad_color = resize_kws['color']
+        self.resize_dim = end_dim
+        self.pad = pad
+        self.pad_color = color
 
         for step in steps:
             if step == 'align':
@@ -629,4 +631,30 @@ class ImagePreprocessor:
                 continue
 
         return
-    #     return {'align': (aligned_image, a_backend), 'crop': (cropped_image, c_backend), 'resize': (resized_image,)}
+#         return {'align': (aligned_image, a_backend), 'crop': (cropped_image, c_backend), 'resize': (resized_image,)}    
+
+    def preprocess_ghosh(self):
+        self.clear_attributes()
+        self.load_image()
+        shape_predictor_path = './pretrained_models/shape_predictor_5_face_landmarks.dat'
+        self.dlib_details = get_dlib_faces(self.image, shape_predictor_path)
+        if type(self.dlib_details) == int:
+            return -1
+        
+        self.cropped_image = dlib.extract_image_chip(self.image, self.dlib_details)
+        self.resized_image = resize_image(self.cropped_image, end_dim = (152, 152), pad = True, color = (0, 0, 0))
+
+        return
+
+    def vectorize(self):
+        self.vector = dp.get_image_vector(self.resized_image, self.vectorizer)
+
+        return
+
+    def set_vectorizer(self, model = None):
+        if model is None:
+            self.vectorizer = dp.get_deepface_vectorizer('./pretrained_models/VGGFace2_DeepFace_weights_val-0.9034.h5')
+        else:
+            self.vectorizer = model
+            
+        return
