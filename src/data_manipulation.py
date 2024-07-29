@@ -162,7 +162,7 @@ def confirm_intra_distance_counts(intra_df, all_paths, string_delim = '_', slice
     return intra_df_counts
 
 def get_distance_df(df, distance_string):
-    distance_df = intra_df[[distance_string]]
+    distance_df = df[[distance_string]]
     distance_df = distance_df.explode(distance_string)
     distance_df[distance_string] = distance_df[distance_string].apply(lambda x: x[-1])
     
