@@ -68,7 +68,7 @@ def vectorize_processed_dataset(dataset_path, destination_root, path_suffix):
             continue
 
         # Get vector and write to disk
-        image = cv2.imread(image_path)[:, :, ::-1]
+        image = cv2.imread(image_path)
         vector = vectorize_image(image, vectorizer)
 
         with open(vector_path, 'wb') as f:
