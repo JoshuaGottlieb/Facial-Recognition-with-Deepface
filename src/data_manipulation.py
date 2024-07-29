@@ -11,7 +11,6 @@ def get_unique_names(path, string_delim = '_', slice_tuple = (0, -2)):
     return sorted(list(set([string_delim.join(x.split(string_delim)[slice_tuple[0]:slice_tuple[1]])
                             for x in os.listdir(path)])))
 
-
 # Helper function to load a vector from a pickled object
 def load_vector(path):
     with open(path, 'rb') as f:
@@ -212,9 +211,9 @@ def get_batch_paths(path_stem, ext, root = './data/vectorized', other_identifier
     return [os.path.join(root, x) for x in os.listdir(root)
             if all([path_stem in os.path.join(root, x), ext in x, other_identifier in x])]
 
-def get_unbatched_frame(path_stem, table_identifier):
+def get_unbatched_frame(path_stem, table_identifier, root = './data/vectorized'):
     # Load all inter-label batch csvs into dataframes
-    csvs = get_batch_paths(path_stem, '.csv', table_identifier)
+    csvs = get_batch_paths(path_stem, '.csv', root = root, other_identifier = table_identifier)
     dfs = [pd.read_csv(c) for c in csvs]
     
     # Concatenate into single dataframe
