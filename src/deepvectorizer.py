@@ -43,7 +43,7 @@ def get_deepface_vectorizer(weights_path, input_shape = (152, 152, 3), num_class
     
     return model
 
-def get_image_vector(image, vectorizer):
+def vectorize_image(image, vectorizer):
     input_image = prep_for_deepface(image)
     
     return vectorizer.predict(input_image)[0]
@@ -69,7 +69,7 @@ def vectorize_processed_dataset(dataset_path, destination_root, path_suffix):
 
         # Get vector and write to disk
         image = cv2.imread(image_path)[:, :, ::-1]
-        vector = get_image_vector(image, vectorizer)
+        vector = vectorize_image(image, vectorizer)
 
         with open(vector_path, 'wb') as f:
             print(f'Pickling vector {i + 1} at {vector_path}')

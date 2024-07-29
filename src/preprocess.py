@@ -653,7 +653,7 @@ class ImagePreprocessor:
         return
 
     def vectorize(self):
-        self.vector = dp.get_image_vector(self.resized_image, self.vectorizer)
+        self.vector = dp.vectorize_image(self.resized_image, self.vectorizer)
 
         return
 
