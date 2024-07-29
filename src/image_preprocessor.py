@@ -652,17 +652,19 @@ class ImagePreprocessor:
 
         return
 
-    def vectorize(self):
+    def vectorize(self, model = None):
+        self.set_vectorizer(model)
         self.vector = dp.vectorize_image(self.resized_image, self.vectorizer)
 
         return
 
     def set_vectorizer(self, model = None):
-        if model is None:
-            self.vectorizer = dp.get_deepface_vectorizer('./pretrained_models/VGGFace2_DeepFace_weights_val-0.9034.h5')
-        else:
-            self.vectorizer = model
-            
+        if self.vectorizer is None:
+            if model is None:
+                self.vectorizer = dp.get_deepface_vectorizer('./pretrained_models/VGGFace2_DeepFace_weights_val-0.9034.h5')
+            else:
+                self.vectorizer = model
+
         return
 
 def preprocess_dataset(image_root = './data/raw', folders = [''], dest_image_root = './data/preprocessed',
