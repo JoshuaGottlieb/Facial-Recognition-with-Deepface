@@ -1,3 +1,6 @@
+import os
+import pickle
+import cv2
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import Sequential, Model
@@ -37,4 +40,33 @@ def get_image_vector(image, vectorizer):
     input_image = prep_for_deepface(image)
     
     return vectorizer.predict(input_image)[0]
+
+def vectorize_processed_dataset(dataset_path, destination_root, path_suffix):
+    
+    # Initialize a vectorizer
+    vectorizer = get_deepface_vectorizer('./pretrained_models/VGGFace2_DeepFace_weights_val-0.9034.h5')
+    
+    # Make sure the destination folder exists
+    if not os.path.exists(destination_root):
+        os.makedirs(destination_root)
+    
+    for i, image_name in enumerate(os.listdir(dataset_path)):
+        image_path = os.path.join(dataset_path, image_name)
+        print(f'Vectorizing image {i + 1} from {image_path}')
+        vector_path = os.path.join(destination_root, image_name.split('.')[0] + f'-{path_suffix}.pickle')
+
+        # If the vector already exists (possibly from a prior session), skip
+        if os.path.exists(vector_path):
+            print(f'Vector {i + 1} already exists as {vector_path}')
+            continue
+
+        # Get vector and write to disk
+        image = cv2.imread(image_path)[:, :, ::-1]
+        vector = get_image_vector(image, vectorizer)
+
+        with open(vector_path, 'wb') as f:
+            print(f'Pickling vector {i + 1} at {vector_path}')
+            pickle.dump(vector, f)
+
+    return
      
