@@ -8,7 +8,7 @@ from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 from retinaface.commons.postprocess import rotate_facial_area
 from retinaface import RetinaFace
-from . import deepvectorizer as dp
+from . import deep_vectorizer as dp
 
 def normal_to_pixel(x, y, w, h, invert = False):
     """
