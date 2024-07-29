@@ -27,14 +27,20 @@ def load_deepface_weights(model, weights_path):
     
     return
 
+def prep_for_deepface(image):
+    return tf.expand_dims(tf.cast(image, tf.float32) / 255.0, axis = 0)
+
 def get_deepface_vectorizer(weights_path, input_shape = (152, 152, 3), num_classes = 8631):
     model = get_deepface_model(input_shape = input_shape, num_classes = num_classes)
     load_deepface_weights(model, weights_path)
     
-    return Model(inputs = model.layers[0].input, outputs = model.layers[-3].output)
-
-def prep_for_deepface(image):
-    return tf.expand_dims(tf.cast(image, tf.float32) / 255.0, axis = 0)
+    model = Model(inputs = model.layers[0].input, outputs = model.layers[-3].output)
+    
+    dummy_arr = np. zeros((152, 152, 3))
+    
+    model.predict(prep_for_deepface(dummy_arr))
+    
+    return model
 
 def get_image_vector(image, vectorizer):
     input_image = prep_for_deepface(image)
