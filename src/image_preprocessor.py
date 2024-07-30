@@ -503,7 +503,7 @@ class ImagePreprocessor:
             self.error_code = -1
             return
         
-        self.clear_attributes()
+        self._clear_attributes()
         self.load_image()
         self.resize_dim = end_dim
         self.pad = pad

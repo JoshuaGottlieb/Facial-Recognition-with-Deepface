@@ -71,9 +71,11 @@ def preprocess_dataset(image_root = './data/raw', folders = [''], dest_image_roo
             
             # If split, make destination paths based on input folders
             if split_results:
-                dest_paths = [os.path.join(dest_image_root, s, folder, image_name) for s in save_folders]
+                dest_paths = [os.path.join(dest_image_root, s, folder,
+                                           image_name.split('.')[0] + '.png') for s in save_folders]
             else:
-                dest_paths = [os.path.join(dest_image_root, s, image_name) for s in save_folders]
+                dest_paths = [os.path.join(dest_image_root, s,
+                                           image_name.split('.')[0] + '.png') for s in save_folders]
             
             # If destination folders do not exist, make them
             for dest in dest_paths:
@@ -93,6 +95,7 @@ def preprocess_dataset(image_root = './data/raw', folders = [''], dest_image_roo
             
             if preprocess_type == 'normal':
                 processor.preprocess_image(**kwargs)
+                print(processor.a_backend, processor.c_backend)
             elif preprocess_type == 'ghosh':
                 processor.preprocess_ghosh()
             
