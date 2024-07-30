@@ -1,15 +1,10 @@
 import os
 import pickle
 import json
-from . import calculation
 import numpy as np
 import pandas as pd
 import re
-
-# Returns sorted list of all unique names of files in path
-def get_unique_names(path, string_delim = '_', slice_tuple = (0, -2)):
-    return sorted(list(set([string_delim.join(x.split(string_delim)[slice_tuple[0]:slice_tuple[1]])
-                            for x in os.listdir(path)])))
+from . import utils
 
 # Helper function to load a vector from a pickled object
 def load_vector(path):
@@ -17,28 +12,12 @@ def load_vector(path):
         vector = pickle.load(f)
     return vector
 
-
-# Load a dictionary from a json file
-def load_json(read_path):
-    with open(read_path, 'r') as f:
-        result = json.load(f)
-    return result
-
-
-def get_all_paths(root_path):
-    all_paths = sorted([x for x in os.listdir(root_path)])
-    return all_paths
-
 # Get all path leaves and load all vectors from path root
 def get_all_paths_and_vectors(root_path):
     all_paths = get_all_paths(root_path)
     vectors = [load_vector(os.path.join(root_path, x)) for x in all_paths]
 
     return all_paths, vectors
-
-# Sum of first n natural numbers for verifying intra-label distance counts per label
-def sum_first_n(n):
-    return (n * (n + 1)) / 2
 
 # Calculates intra-label distances and writes to disk as a json file
 def calculate_intra_distances(unique_names, all_paths, vectors, write_path,
@@ -136,17 +115,6 @@ def calculate_inter_distances(unique_names, all_paths, vectors, write_path_stem,
             inter_distances = {}
             
     return
-
-def load_json_into_frame(json_path):
-    # Read intra-label distances from disk and place into dataframe
-    distances = load_json(json_path)
-    distances_df = pd.DataFrame.from_dict(distances, orient = 'index').reset_index()
-    distances_df.columns = ['name', 'l2_distances', 'cosine_distances']
-    
-    # Remove rows with no distances
-    distances_df = distances_df.loc[distances_df.l2_distances.apply(len).gt(0)]
-    
-    return distances_df
 
 def confirm_intra_distance_counts(intra_df, all_paths, string_delim = '_', slice_tuple = (0, -2)):
     # Verifying correct counts for each label
