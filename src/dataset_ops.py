@@ -136,10 +136,11 @@ def preprocess_dataset(image_root = './data/raw', folders = [''], dest_image_roo
                 
     return
 
-def vectorize_processed_dataset(dataset_path, destination_root, path_suffix):
-    # Initialize a vectorizer
-    vectorizer = ImageVectorizer('./pretrained_models/VGGFace2_DeepFace_weights_val-0.9034.h5')
-    vectorizer.initialize()
+def vectorize_processed_dataset(dataset_path, destination_root, path_suffix, vectorizer = None):
+    if vectorizer is None:
+        # Initialize a vectorizer
+        vectorizer = ImageVectorizer('./pretrained_models/VGGFace2_DeepFace_weights_val-0.9034.h5')
+        vectorizer.initialize()
     
     # Make sure the destination folder exists
     if not os.path.exists(destination_root):
@@ -152,11 +153,11 @@ def vectorize_processed_dataset(dataset_path, destination_root, path_suffix):
 
         # If the vector already exists (possibly from a prior session), skip
         if os.path.exists(vector_path):
-            print(f'Vector {i + 1} already exists as {vector_path}')
+            print(f'Vector {i + 1} already exists at {vector_path}')
             continue
 
         # Get vector and write to disk
-        vector = vectorizer.vectorize_image(preprocess = False)
+        vector = vectorizer.vectorize_image(image_path, preprocess = False)
 
         with open(vector_path, 'wb') as f:
             print(f'Pickling vector {i + 1} at {vector_path}')

@@ -36,7 +36,7 @@ class ImageVectorizer:
 
     def initialize(self, input_shape = (152, 152, 3), num_classes = 8631):
         self._get_deepface_graph(input_shape = input_shape, num_classes = num_classes)
-        self._load_model(self.weights_path)
+        self._load_model()
 
         self.model = Model(inputs = self.model.layers[0].input, outputs = self.model.layers[-3].output)
 
@@ -45,25 +45,25 @@ class ImageVectorizer:
         self.model.predict(self._prep_for_deepface(dummy_arr))
         return
 
-    def vectorize_image(image_path, preprocess = True, preprocess_type = 'normal',
+    def vectorize_image(self, image_path, preprocess = True, preprocess_type = 'normal',
                         input_shape = (152, 152, 3), num_classes = 8631, **kwargs):
         if self.model == None:
             self.initialize(input_shape = input_shape, num_classes = num_classes)
             
-        image_wrapper = ImagePreprocessing(image_path)
+        image_wrapper = ImagePreprocessor(image_path)
         
         if preprocess:
             if preprocess_type == 'normal':
                 image_wrapper.preprocess_image(**kwargs)
-                input_image = self.prep_for_deepface(image_wrapper.get_resized_image())
+                input_image = self._prep_for_deepface(image_wrapper.get_resized_image())
             elif preprocess_type == 'ghosh':
                 image_wrapper.preprocess_ghosh()
-                input_image = self.prep_for_deepface(image_wrapper.get_resized_image())
+                input_image = self._prep_for_deepface(image_wrapper.get_resized_image())
             else:
                 print(f"Unable to determine preprocessing type.\n"
                       + "Valid preprocessing types are 'normal' and 'ghosh'. Using unprocessed image.")
-                input_image = self.prep_for_deepface(image_wrapper.get_image())
+                input_image = self._prep_for_deepface(image_wrapper.get_image())
         else:
-            input_image = self.prep_for_deepface(image_wrapper.get_image())
+            input_image = self._prep_for_deepface(image_wrapper.get_image())
 
         return self.model.predict(input_image)[0]

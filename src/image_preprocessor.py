@@ -48,14 +48,16 @@ class ImagePreprocessor:
         self.error_code = None
         self.error_string = None
         self.facial_region = None
-        
         return
     
     def _clear_backend_details(self):
         self.dlib_details = None
         self.rf_details = None
         self.mp_details = None
-        
+        return
+    
+    def _clear_error_code(self):
+        self.error_code = None
         return
         
     def load_image(self):
@@ -337,6 +339,7 @@ class ImagePreprocessor:
         """
 
         self._clear_backend_details()
+        self._clear_error_code()
         
         # Format and confirm backend parameter
         backend = utils.confirm_valid_list_input(backend, valid_options = ['dlib', 'retinaface', 'mediapipe'])
@@ -390,6 +393,7 @@ class ImagePreprocessor:
                 if no backends are able to detect faces, returns -1
         """
         self._clear_backend_details()
+        self._clear_error_code()
         
         # Format and confirm backend parameter
         backend = utils.confirm_valid_list_input(backend, valid_options = ['mediapipe', 'retinaface', 'dlib'])
@@ -412,20 +416,20 @@ class ImagePreprocessor:
                 return
 
             if b == 'retinaface':
-                self._get_retinaface_faces()
+                self._get_retinaface_faces(self.aligned_image)
                 if self.rf_details is None:
                     continue            
-                self._get_retinaface_region(face_info)
+                self._get_retinaface_region()
                 self.cropped_image = self.aligned_image[self.facial_area[2]:self.facial_area[3],
                                            self.facial_area[0]:self.facial_area[1], :]
                 self.c_backend = b
                 return
 
             if b == 'dlib':
-                self._get_dlib_faces(image, shape_predictor_path)
+                self._get_dlib_faces(self.aligned_image, self.shape_predictor_path)
                 if self.dlib_details is None:
                     continue            
-                self.get_dlib_region(face_info)
+                self.get_dlib_region()
                 self.cropped_image = self.aligned_image[self.facial_area[2]:self.facial_area[3],
                                            self.facial_area[0]:self.facial_area[1], :]
                 self.c_backend = b
@@ -510,6 +514,7 @@ class ImagePreprocessor:
         self.pad_color = color
 
         for step in steps:
+            self._clear_error_code()
             if step == 'align':
                 self._align_image(backend = alignment_backend)
                 if self.a_backend is None:
@@ -534,10 +539,11 @@ class ImagePreprocessor:
             if step == 'resize':
                 self._resize_image()
                 continue
+                
         return 
 
     def preprocess_ghosh(self):
-        self.clear_attributes()
+        self._clear_attributes()
         self.load_image()
         self._get_dlib_faces(self.image)
         if self.dlib_details is None:
@@ -545,8 +551,8 @@ class ImagePreprocessor:
             return
         
         self.cropped_image = dlib.extract_image_chip(self.image, self.dlib_details)
-        self.end_dim = (152, 152)
+        self.resize_dim = (152, 152)
         self.pad = True
         self.pad_color = (0, 0, 0)
-        self.resized_image = self._resize_image()
+        self._resize_image()
         return
