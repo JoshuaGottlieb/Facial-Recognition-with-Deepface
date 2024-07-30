@@ -229,7 +229,7 @@ class ImagePreprocessor:
 
         angle, direction = ft.get_angle_from_eyes(left_eye, right_eye)
 
-        self.aligned_image = ft.rotate_from_angle(self.image, tuple(np.array(image.shape[1::-1]) / 2), angle, direction)
+        self.aligned_image = ft.rotate_from_angle(self.image, tuple(np.array(self.image.shape[1::-1]) / 2), angle, direction)
 
         return
     
@@ -255,7 +255,7 @@ class ImagePreprocessor:
             eye_pixels = []
             for num in eye:
                 landmark = self.mp_details.landmark[num]
-                coords = ft.normal_to_pixel(float(landmark.x), float(landmark.y), image.shape[1], image.shape[0])
+                coords = ft.normal_to_pixel(float(landmark.x), float(landmark.y), self.image.shape[1], self.image.shape[0])
                 eye_pixels.append(np.array(coords))
             pixels.append(np.array(eye_pixels))
 

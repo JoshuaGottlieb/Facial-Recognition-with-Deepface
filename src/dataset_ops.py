@@ -95,7 +95,6 @@ def preprocess_dataset(image_root = './data/raw', folders = [''], dest_image_roo
             
             if preprocess_type == 'normal':
                 processor.preprocess_image(**kwargs)
-                print(processor.a_backend, processor.c_backend)
             elif preprocess_type == 'ghosh':
                 processor.preprocess_ghosh()
             
