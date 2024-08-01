@@ -14,7 +14,7 @@ def load_vector(path):
 
 # Get all path leaves and load all vectors from path root
 def get_all_paths_and_vectors(root_path):
-    all_paths = get_all_paths(root_path)
+    all_paths = utils.get_all_paths(root_path)
     vectors = [load_vector(os.path.join(root_path, x)) for x in all_paths]
 
     return all_paths, vectors
@@ -50,11 +50,11 @@ def calculate_intra_distances(unique_names, all_paths, vectors, write_path,
             # Calculate distances
             for index_2 in vector2_indices:
                 name_l2_distances.append((f'{all_paths[index_1]}', f'{all_paths[index_2]}',
-                                          calculation.l2_distance(vectors[index_1],
-                                                                  vectors[index_2]).astype(float)))
+                                          utils.l2_distance(vectors[index_1],
+                                                            vectors[index_2]).astype(float)))
                 name_cos_distances.append((f'{all_paths[index_1]}', f'{all_paths[index_2]}',
-                                           calculation.cosine_distance(vectors[index_1],
-                                                                       vectors[index_2]).astype(float)))
+                                           utils.cosine_distance(vectors[index_1],
+                                                                 vectors[index_2]).astype(float)))
         # Append distances to dictionary
         print(f'Appending inter-label distances for {name} to dictionary')
         intra_distances[name]['l2_distances'] = name_l2_distances
@@ -95,11 +95,11 @@ def calculate_inter_distances(unique_names, all_paths, vectors, write_path_stem,
         for index_1 in vector1_indices:
             for index_2 in vector2_indices:
                 name_l2_distances.append((f'{all_paths[index_1]}', f'{all_paths[index_2]}',
-                                          calculation.l2_distance(vectors[index_1],
-                                                                  vectors[index_2]).astype(float)))
+                                          utils.l2_distance(vectors[index_1],
+                                                            vectors[index_2]).astype(float)))
                 name_cos_distances.append((f'{all_paths[index_1]}', f'{all_paths[index_2]}',
-                                           calculation.cosine_distance(vectors[index_1],
-                                                                       vectors[index_2]).astype(float)))
+                                           utils.cosine_distance(vectors[index_1],
+                                                                 vectors[index_2]).astype(float)))
         # Append distances to dictionary
         print(f'Appending inter-label distances for {name} to dictionary')
         inter_distances[name]['l2_distances'] = name_l2_distances
@@ -121,8 +121,8 @@ def confirm_intra_distance_counts(intra_df, all_paths, string_delim = '_', slice
     intra_df_counts = intra_df[['name', 'l2_distances']].explode('l2_distances').groupby('name').count().reset_index()
     intra_df_counts.columns = ['name', 'counts']
     intra_df_counts['correct_counts'] = intra_df_counts.name.apply(lambda x:\
-                                       sum_first_n(len([y for y in all_paths
-                                            if string_delim.join(y.split(string_delim)[slice_tuple[0]:slice_tuple[1]])
+                                           utils.sum_first_n(len([y for y in all_paths
+                                           if string_delim.join(y.split(string_delim)[slice_tuple[0]:slice_tuple[1]])
                                                                     == x]) - 1))
     intra_df_counts['proper_count'] = np.where(intra_df_counts.counts == intra_df_counts.correct_counts, True, False)
     intra_df_counts.loc[intra_df_counts.proper_count == False]

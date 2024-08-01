@@ -42,7 +42,7 @@ class ImageVectorizer:
 
         dummy_arr = np.zeros((152, 152, 3))
 
-        self.model.predict(self._prep_for_deepface(dummy_arr))
+        self.model.predict(self._prep_for_deepface(dummy_arr), verbose = 0)
         return
 
     def vectorize_image(self, image_path, preprocess = True, preprocess_type = 'normal',
