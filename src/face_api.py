@@ -146,8 +146,9 @@ def find_image_match(image_path, db_vectors, model = None, metric = 'cos',
     
     # If no matches found below threshold, exit with comparison evaluations
     if len(match_indices[0]) == 0:
-        return f"No matching images found.\nDistance threshold: {thresholds[threshold_strictness - 1]}"
-              + f"\nLowest Distance: {min(distances[possible_indices])}"
+        no_match_string = f"No matching images found.\nDistance threshold: {thresholds[threshold_strictness - 1]}"\
+                          + f"\nLowest Distance: {min(distances[possible_indices])}"
+        return no_match_string
     
     # Otherwise, return all matches (up to match_num) found, sorted by lowest distance
     match_ids = ids[possible_indices[match_indices[0]]]
