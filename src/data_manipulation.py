@@ -136,7 +136,7 @@ def get_distance_df(df, distance_string):
     
     return distance_df
 
-def write_inter_batch_frames(json_paths, dest_path_stem):
+def write_inter_batch_frames(json_paths, dest_path_stem, slices = (0, -1)):
     # For each json batch, load into a dataframe and process
     # Dataframes become extremely large, especially when applying explode operations
     # This processing was able to be done with 20 GB of memory
@@ -154,8 +154,8 @@ def write_inter_batch_frames(json_paths, dest_path_stem):
         temp_dict = 0
         # Explode around l2 distances and extract image pairs
         temp_df_l2 = temp_df[['l2_distances']].explode('l2_distances')
-        temp_df_l2['image_1'] = temp_df_l2.l2_distances.apply(lambda x: '_'.join(x[0].split('_')[0:-1]))
-        temp_df_l2['image_2'] = temp_df_l2.l2_distances.apply(lambda x: '_'.join(x[1].split('_')[0:-1]))
+        temp_df_l2['image_1'] = temp_df_l2.l2_distances.apply(lambda x: '_'.join(x[0].split('_')[slices[0]:slices[1]]))
+        temp_df_l2['image_2'] = temp_df_l2.l2_distances.apply(lambda x: '_'.join(x[1].split('_')[slices[0]:slices[1]]))
         temp_df_pairs = temp_df_l2.drop(['l2_distances'], axis = 1)
         # Write pair information for batch to disk and unallocate the dataframe to free memory
         temp_df_pairs.to_csv(f'{dest_path_stem}_{js_batch_name:04d}_pairs.csv', index = False)
@@ -189,9 +189,9 @@ def get_unbatched_frame(path_stem, table_identifier, root = './data/vectorized')
     
     return unbatched_df
 
-def confirm_inter_distance_counts(path_stem, vector_leaf):
+def confirm_inter_distance_counts(path_stem, vector_leaf, root = './data/vectorized'):
     # Load all inter-label pair information csvs into a single concatenated dataframe
-    pair_df = get_unbatched_frame(path_stem, 'pairs')
+    pair_df = get_unbatched_frame(path_stem, 'pairs', root = root)
     # Convert the dataframe from two columns representing pairs to single column representing image names
     pair_df_stacked = pd.concat([pair_df[['image_1']], pair_df[['image_2']]])
     pair_df_stacked.image_1 = pair_df_stacked.image_1.fillna(pair_df_stacked.image_2)
