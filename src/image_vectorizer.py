@@ -3,11 +3,13 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import Sequential, Model
 from tensorflow.keras.activations import relu, softmax
-from tensorflow.keras.layers import Convolution2D, MaxPooling2D, LocallyConnected2D, Flatten, Dense, Dropout
-from .image_preprocessor import ImagePreprocessor
+from tensorflow.keras.layers import Convolution2D, MaxPooling2D, Flatten, Dense, Dropout
+from image_preprocessor import ImagePreprocessor
+
+from tensorflow.keras.layers import LocallyConnected2D
 
 class ImageVectorizer:
-    def __init__(self, weights_path = './pretrained_models/VGGFace2_DeepFace_weights_val-0.9034.h5'):
+    def __init__(self, weights_path = './VGGFace2_DeepFace_weights_val-0.9034.h5'):
         self.weights_path = weights_path
         self.model = None
 

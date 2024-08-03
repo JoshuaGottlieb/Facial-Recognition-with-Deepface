@@ -3,15 +3,17 @@ import numpy as np
 import cv2
 import dlib
 import mediapipe as mp
-from mediapipe.tasks import python
-from mediapipe.tasks.python import vision
-from retinaface.commons.postprocess import rotate_facial_area
-from retinaface import RetinaFace
-from . import face_utils as ft
-from . import utils
+# from mediapipe.tasks import python
+# from mediapipe.tasks.python import vision
+# from retinaface.commons.postprocess import rotate_facial_area
+# from retinaface import RetinaFace
+# from . import face_utils as ft
+# from . import utils
+import face_utils as ft
+import utils as utils
 
 class ImagePreprocessor:
-    def __init__(self, image_path, shape_predictor_path = './pretrained_models/shape_predictor_5_face_landmarks.dat'):
+    def __init__(self, image_path, shape_predictor_path = './shape_predictor_5_face_landmarks.dat'):
         self.image_path = image_path
         self.image = None
         self.aligned_image = None
@@ -140,7 +142,8 @@ class ImagePreprocessor:
         return: dictionary representing facial data of centermost face;
                 if no faces are found, returns -1 for further error handling
         """
-        faces = RetinaFace.detect_faces(img_path = image)
+        # faces = RetinaFace.detect_faces(img_path = image)
+        faces = {}
 
         face_key = 'face_1'
 
