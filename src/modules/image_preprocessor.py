@@ -3,9 +3,6 @@ import numpy as np
 import cv2
 import dlib
 import mediapipe as mp
-from mediapipe.tasks import python
-from mediapipe.tasks.python import vision
-from retinaface.commons.postprocess import rotate_facial_area
 from retinaface import RetinaFace
 from . import face_utils as ft
 from . import utils

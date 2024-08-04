@@ -2,7 +2,6 @@ import os
 import re
 import numpy as np
 from . import utils
-from .image_preprocessor import ImagePreprocessor
 from .image_vectorizer import ImageVectorizer
 
 def init_model(weights_path = './pretrained_models/VGGFace2_DeepFace_weights_val-0.9034.h5'):
@@ -32,7 +31,8 @@ def load_vector_dict(dir_path):
       
     return vector_dict
     
-def get_image_vector(image_path, model = None, preprocess_type = 'ghosh', **kwargs):
+def get_image_vector(image_path, model = None, preprocess_type = 'ghosh',
+                     shape_predictor_path = './pretrained_models/shape_predictor_5_face_landmarks.dat', **kwargs):
     """
     Generates a vector from an image loaded from an image path.
     
@@ -41,6 +41,7 @@ def get_image_vector(image_path, model = None, preprocess_type = 'ghosh', **kwar
         model: tensorflow.keras.Model object to use to generate predictions.
                If no model given, one will be initialized; however, work is much faster using a pre-initialized model.
         preprocess_type: str representing the type of preprocessing to perform. Valid parameters are 'normal' and 'ghosh'
+        shape_predictor_path: str representing path to dlib pre-trained shape predictor.
         **kwargs: key-word arguments to be passed to the image preprocessor if preprocess_type is set to 'normal'
         
     returns: np.array representing the image vector
@@ -52,12 +53,14 @@ def get_image_vector(image_path, model = None, preprocess_type = 'ghosh', **kwar
         print(f'Invalid preprocess type specified, defaulting to Ghosh preprocessing.')
         preprocess_type = 'ghosh'
     
-    vector = model.vectorize_image(image_path, preprocess_type = preprocess_type, **kwargs)
+    vector = model.vectorize_image(image_path, preprocess_type = preprocess_type,
+                                   shape_predictor_path = shape_predictor_path, **kwargs)
 
     return vector
 
 def find_image_match(image_path, db_vectors, model = None, metric = 'cos',
-                     threshold_strategy = 'matthews_cc', threshold_strictness = 2, match_num = 1):
+                     threshold_strategy = 'matthews_cc', threshold_strictness = 2, match_num = 1,
+                     shape_predictor_path = './pretrained_models/shape_predictor_5_face_landmarks.dat'):
     """
     Finds the best matching image to an image loaded from an image path in a database by converting the image to a vector. 
     Compares the vector to database vectors and returns the database id of the closest vector and matching information.
@@ -83,6 +86,7 @@ def find_image_match(image_path, db_vectors, model = None, metric = 'cos',
         threshold_strictness: int representing the number of successively less strict thresholds to test.
                               Valid options range from 1 to 5. Used to allow looser matches along similar threshold criterion.
         match_num: int representing the top N matches to return. Default 1.
+        shape_predictor_path: str representing path to dlib pre-trained shape predictor.
     
     returns:
         matches: list of match tuples of form ('match_id', 'distance')
@@ -113,7 +117,7 @@ def find_image_match(image_path, db_vectors, model = None, metric = 'cos',
     if match_num <= 0:
         match_num = 1
     
-    vector = get_image_vector(image_path, model = model)
+    vector = get_image_vector(image_path, model = model, shape_predictor_path = shape_predictor_path)
     
     # Initialized list to capture ids and distances
     ids = []

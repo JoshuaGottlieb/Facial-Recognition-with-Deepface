@@ -46,11 +46,12 @@ class ImageVectorizer:
         return
 
     def vectorize_image(self, image_path, preprocess = True, preprocess_type = 'normal',
-                        input_shape = (152, 152, 3), num_classes = 8631, **kwargs):
+                        input_shape = (152, 152, 3), num_classes = 8631,
+                        shape_predictor_path = './pretrained_models/shape_predictor_5_face_landmarks.dat', **kwargs):
         if self.model == None:
             self.initialize(input_shape = input_shape, num_classes = num_classes)
             
-        image_wrapper = ImagePreprocessor(image_path)
+        image_wrapper = ImagePreprocessor(image_path, shape_predictor_path = shape_predictor_path)
         
         if preprocess:
             if preprocess_type == 'normal':
