@@ -263,7 +263,7 @@ class ImagePreprocessor:
 
         angle, direction = ft.get_angle_from_eyes(eye_centers[0], eye_centers[1])
 
-        self.aligned_image = ft.rotate_from_angle(image, tuple(np.array(image.shape[1::-1]) / 2), angle, direction)
+        self.aligned_image = ft.rotate_from_angle(self.image, tuple(np.array(self.image.shape[1::-1]) / 2), angle, direction)
 
         return
     
