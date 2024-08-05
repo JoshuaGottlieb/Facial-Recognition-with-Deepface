@@ -83,6 +83,19 @@ class ImagePreprocessor:
     def get_error(self):
         return self.error_code, self.error_string
     
+    def get_facial_region(self):
+        return self.facial_region
+    
+    def get_backend_details(self, backend = None):
+        if backend == 'dlib':
+            return self.dlib_details
+        if backend == 'retinaface':
+            return self.rf_details
+        if backend == 'mediapipe':
+            return self.mp_details
+        
+        return
+    
     def _get_dlib_faces(self, image):
         """
         Uses dlib's face landmark shape predictor to detect faces in an image.
@@ -297,7 +310,12 @@ class ImagePreprocessor:
 
         return: (x_min, x_max, y_min, y_max) tuple of ints representing facial region for use in numpy slicing
         """
-        self.facial_area = self.rf_details['facial_area']
+        x_min = self.rf_details['facial_area'][0]
+        x_max = self.rf_details['facial_area'][2]
+        y_min = self.rf_details['facial_area'][1]
+        y_max = self.rf_details['facial_area'][3]
+        
+        self.facial_region = x_min, x_max, y_min, y_max
         return
     
     def _get_mediapipe_region(self, image):
@@ -318,7 +336,7 @@ class ImagePreprocessor:
         y_min = np.clip(0, int(np.round(min([k.y for k in self.mp_details.landmark]) * image.shape[0])), image.shape[0])
         y_max = np.clip(0, int(np.round(max([k.y for k in self.mp_details.landmark]) * image.shape[0])), image.shape[0])
 
-        self.facial_area = x_min, x_max, y_min, y_max
+        self.facial_region = x_min, x_max, y_min, y_max
         return
     
     def _align_image(self, backend = ['dlib', 'retinaface', 'mediapipe']):
@@ -407,8 +425,8 @@ class ImagePreprocessor:
                 if self.mp_details is None:
                     continue
                 self._get_mediapipe_region(self.aligned_image)
-                self.cropped_image = self.aligned_image[self.facial_area[2]:self.facial_area[3],
-                                           self.facial_area[0]:self.facial_area[1], :]
+                self.cropped_image = self.aligned_image[self.facial_region[2]:self.facial_region[3],
+                                           self.facial_region[0]:self.facial_region[1], :]
                 self.c_backend = b
                 return
 
@@ -417,18 +435,18 @@ class ImagePreprocessor:
                 if self.rf_details is None:
                     continue            
                 self._get_retinaface_region()
-                self.cropped_image = self.aligned_image[self.facial_area[2]:self.facial_area[3],
-                                           self.facial_area[0]:self.facial_area[1], :]
+                self.cropped_image = self.aligned_image[self.facial_region[2]:self.facial_region[3],
+                                           self.facial_region[0]:self.facial_region[1], :]
                 self.c_backend = b
                 return
 
             if b == 'dlib':
-                self._get_dlib_faces(self.aligned_image, self.shape_predictor_path)
+                self._get_dlib_faces(self.aligned_image)
                 if self.dlib_details is None:
                     continue            
-                self.get_dlib_region()
-                self.cropped_image = self.aligned_image[self.facial_area[2]:self.facial_area[3],
-                                           self.facial_area[0]:self.facial_area[1], :]
+                self._get_dlib_region()
+                self.cropped_image = self.aligned_image[self.facial_region[2]:self.facial_region[3],
+                                           self.facial_region[0]:self.facial_region[1], :]
                 self.c_backend = b
                 return
 
