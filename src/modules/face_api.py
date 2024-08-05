@@ -58,7 +58,7 @@ def get_image_vector(image_path, model = None, preprocess_type = 'ghosh',
 
     return vector
 
-def find_image_match(image_path, db_vectors, model = None, metric = 'cos',
+def find_image_match(image_path, db_vectors, model = None, metric = 'cos', preprocess_type = 'ghosh',
                      threshold_strategy = 'matthews_cc', threshold_strictness = 2, match_num = 1,
                      shape_predictor_path = './pretrained_models/shape_predictor_5_face_landmarks.dat'):
     """
@@ -117,7 +117,8 @@ def find_image_match(image_path, db_vectors, model = None, metric = 'cos',
     if match_num <= 0:
         match_num = 1
     
-    vector = get_image_vector(image_path, model = model, shape_predictor_path = shape_predictor_path)
+    vector = get_image_vector(image_path, model = model,
+                              preprocess_type = preprocess_type, shape_predictor_path = shape_predictor_path)
     
     # Initialized list to capture ids and distances
     ids = []
