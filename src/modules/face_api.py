@@ -17,7 +17,7 @@ def init_model(weights_path = './pretrained_models/VGGFace2_DeepFace_weights_val
     model.initialize()
     return model
     
-def load_vector_dict(dir_path):
+def load_vector_dict(dir_path, num_digits = 4):
     """
     Loads a dictionary with keys on the image_name and values of vectors. Used for testing on local machine.
     
@@ -27,7 +27,8 @@ def load_vector_dict(dir_path):
     vector_leaves = utils.get_all_paths(dir_path)
     vector_paths = [os.path.join(dir_path, leaf) for leaf in vector_leaves]
     
-    vector_dict = {re.search(r'([\w_\-]+\d{4})[\w_\-]*\.pickle$', p)[1] : utils.unpickle(p) for p in vector_paths}
+    vector_dict = {re.search(rf'([\w_\-]+\d{{{num_digits}}})[\w_\-]*\.pickle$', p)[1] : utils.unpickle(p)
+                   for p in vector_paths}
       
     return vector_dict
     
@@ -144,10 +145,12 @@ def find_image_match(image_path, db_vectors, model = None, metric = 'cos', prepr
     possible_indices = np.argpartition(distances, match_num)[:match_num]
     
     # Check against thresholds for matches
-    for i in range(0, threshold_strictness):
-        match_indices = np.nonzero(distances[possible_indices] < thresholds[i])
-        if len(match_indices[0]) != 0:
-            break
+#     for i in range(0, threshold_strictness):
+#         match_indices = np.nonzero(distances[possible_indices] < thresholds[i])
+#         if len(match_indices[0]) != 0:
+#             break
+    
+    match_indices = np.nonzero(distances[possible_indices] < thresholds[threshold_strictness - 1])
     
     # If no matches found below threshold, exit with comparison evaluations
     if len(match_indices[0]) == 0:
