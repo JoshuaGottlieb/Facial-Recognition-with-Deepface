@@ -63,7 +63,7 @@ class DeepFaceApp(App):
 
         # Match result label
         self.match_label = Label(text='', size_hint=(0.8, 0.1), pos_hint={'center_x': 0.5, 'y': 0.05})
-        self.layout.add_widget(self.match_label)
+        # self.layout.add_widget(self.match_label)
 
         # Matched image view
         self.matched_image = Image(size_hint=(0.3, 0.3), pos_hint={'center_x': 0.5, 'y': 0.35})
@@ -90,9 +90,7 @@ class DeepFaceApp(App):
     def update(self, dt):
         ret, frame = self.capture.read()
         if ret:
-            # Add match result text to the frame if a match was found
-            if self.match_result:
-                cv2.putText(frame, f"Match found: {self.match_result}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+            SIMPLEX, 1, (0, 255, 0), 2)
             # Convert it to texture
             buf = cv2.flip(frame, 0).tobytes()
             image_texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt='bgr')
@@ -124,6 +122,11 @@ class DeepFaceApp(App):
         else:
             self.label.text = "No match found"
             self.match_label.text = "No match found"
+            self.clear_matched_image()
+
+    def clear_matched_image(self):
+        # Clear the texture of the matched image
+        self.matched_image.texture = None
 
     def match_vector(self, captured_vector):
         threshold = 0.6  # Adjust this threshold as needed
@@ -158,7 +161,6 @@ class DeepFaceApp(App):
             return match.group(1)
         return None
 
-
     def display_matched_image(self, image_name):
         print('image_name', image_name)
         image_file_name = self.extract_image_filename(image_name)
@@ -170,6 +172,11 @@ class DeepFaceApp(App):
             image_texture.blit_buffer(buf, colorfmt='bgr', bufferfmt='ubyte')
             self.matched_image.texture = image_texture
             self.matched_image.pos_hint = {'right': 1, 'top': 1}
+
+            # Check if the widget already has a parent
+            if self.matched_image.parent:
+                self.matched_image.parent.remove_widget(self.matched_image)
+
             self.layout.add_widget(self.matched_image)
 
 
