@@ -5,6 +5,7 @@ from face_api import get_image_vector
 import os
 import tensorflow as tf
 import numpy as np
+import shutil
 
 print(tf.__version__)
 
@@ -15,7 +16,8 @@ firebase_admin.initialize_app(cred)
 db = firestore.client()
 
 # Path to the folder containing images
-image_folder = '../data/dummy_dataset/input_images'
+image_folder = '../data/dummy_dataset/images_to_vectorize'
+destination_folder = '../data/dummy_dataset/input_images'
 
 # Reference to your Firestore collection
 collection_ref = db.collection('vectors')
@@ -40,5 +42,8 @@ for image_name in os.listdir(image_folder):
 
     # Add the data to Firestore
     collection_ref.document(unique_id).set(data)
+
+    # Move the processed image to the destination folder
+    shutil.move(image_path, os.path.join(destination_folder, image_name))
 
 print("All images have been processed and stored in Firestore.")
