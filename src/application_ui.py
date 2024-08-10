@@ -90,7 +90,7 @@ class DeepFaceApp(App):
     def update(self, dt):
         ret, frame = self.capture.read()
         if ret:
-            SIMPLEX, 1, (0, 255, 0), 2)
+            # SIMPLEX, 1, (0, 255, 0), 2)
             # Convert it to texture
             buf = cv2.flip(frame, 0).tobytes()
             image_texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt='bgr')
