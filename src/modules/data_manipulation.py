@@ -189,7 +189,7 @@ def get_unbatched_frame(path_stem, table_identifier, root = './data/vectorized')
     
     return unbatched_df
 
-def confirm_inter_distance_counts(path_stem, vector_leaf, root = './data/vectorized'):
+def confirm_inter_distance_counts(path_stem, vector_leaf, root = './data/vectorized', numbering_length = 5):
     # Load all inter-label pair information csvs into a single concatenated dataframe
     pair_df = get_unbatched_frame(path_stem, 'pairs', root = root)
     # Convert the dataframe from two columns representing pairs to single column representing image names
@@ -202,7 +202,7 @@ def confirm_inter_distance_counts(path_stem, vector_leaf, root = './data/vectori
     pair_df_counts = pair_df_stacked.groupby('image').count().reset_index()
     # Collect all image_names
     image_names = pair_df_counts.image.values.tolist()
-    slice_index = len(vector_leaf) + 5
+    slice_index = len(vector_leaf) + numbering_length
     # Calculate the number of instances that should exist for each image
     # Number of images - number of images with same name
     pair_df_counts['correct_counts'] = pair_df_counts.image.apply(lambda x: len(image_names)

@@ -139,7 +139,7 @@ def preprocess_dataset(image_root = './data/raw', folders = [''], dest_image_roo
 def vectorize_processed_dataset(dataset_path, destination_root, path_suffix, vectorizer = None):
     if vectorizer is None:
         # Initialize a vectorizer
-        vectorizer = ImageVectorizer('./VGGFace2_DeepFace_weights_val-0.9034.h5')
+        vectorizer = ImageVectorizer('./pretrained_models/VGGFace2_DeepFace_weights_val-0.9034.h5')
         vectorizer.initialize()
     
     # Make sure the destination folder exists

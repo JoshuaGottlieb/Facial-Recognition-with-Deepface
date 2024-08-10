@@ -2,18 +2,13 @@ import os
 import numpy as np
 import cv2
 import dlib
-import mediapipe as mp
-# from mediapipe.tasks import python
-# from mediapipe.tasks.python import vision
-# from retinaface.commons.postprocess import rotate_facial_area
-# from retinaface import RetinaFace
-# from . import face_utils as ft
-# from . import utils
-import face_utils as ft
-import utils as utils
+#import mediapipe as mp
+#from retinaface import RetinaFace
+from . import face_utils as ft
+from . import utils
 
 class ImagePreprocessor:
-    def __init__(self, image_path, shape_predictor_path = './shape_predictor_5_face_landmarks.dat'):
+    def __init__(self, image_path, shape_predictor_path = './pretrained_models/shape_predictor_5_face_landmarks.dat'):
         self.image_path = image_path
         self.image = None
         self.aligned_image = None
@@ -88,6 +83,19 @@ class ImagePreprocessor:
     def get_error(self):
         return self.error_code, self.error_string
     
+    def get_facial_region(self):
+        return self.facial_region
+    
+    def get_backend_details(self, backend = None):
+        if backend == 'dlib':
+            return self.dlib_details
+        if backend == 'retinaface':
+            return self.rf_details
+        if backend == 'mediapipe':
+            return self.mp_details
+        
+        return
+    
     def _get_dlib_faces(self, image):
         """
         Uses dlib's face landmark shape predictor to detect faces in an image.
@@ -142,24 +150,23 @@ class ImagePreprocessor:
         return: dictionary representing facial data of centermost face;
                 if no faces are found, returns -1 for further error handling
         """
-        # faces = RetinaFace.detect_faces(img_path = image)
-        faces = {}
+        #faces = RetinaFace.detect_faces(img_path = image)
 
-        face_key = 'face_1'
+        #face_key = 'face_1'
 
-        # If no faces are found, return -1.
-        if len(faces.keys()) == 0:
-            self.error_code = -1
-            return
+        ## If no faces are found, return -1.
+        #if len(faces.keys()) == 0:
+        #    self.error_code = -1
+        #    return
 
-        # If multiple faces are found, get the dictionary key for the centermost face.
-        if len(faces.keys()) > 1:
-            image_center = tuple(np.array(image.shape[1::-1]) / 2)
-            face_noses = [(faces[key]['landmarks']['nose'][0], faces[key]['landmarks']['nose'][1]) for key in faces.keys()]
-            face_index = ft.get_index_center_face(image_center, face_noses)
-            face_key = list(faces.keys())[face_index]
+        ## If multiple faces are found, get the dictionary key for the centermost face.
+        #if len(faces.keys()) > 1:
+        #    image_center = tuple(np.array(image.shape[1::-1]) / 2)
+        #    face_noses = [(faces[key]['landmarks']['nose'][0], faces[key]['landmarks']['nose'][1]) for key in faces.keys()]
+        #    face_index = ft.get_index_center_face(image_center, face_noses)
+        #    face_key = list(faces.keys())[face_index]
 
-        self.rf_details = faces[face_key]
+        #self.rf_details = faces[face_key]
 
         return
 
@@ -174,34 +181,34 @@ class ImagePreprocessor:
         return: mediapipe.framework.formats.landmark_pb2.NormalizedLandmarkList representing
                 the found landmarks for the centermost face; if no faces are found, returns -1 for further error handling
         """
-        mp_face_mesh = mp.solutions.face_mesh
+        #mp_face_mesh = mp.solutions.face_mesh
 
-        with mp_face_mesh.FaceMesh(static_image_mode = True,
-                                   max_num_faces = 5,
-                                   refine_landmarks = True) as face_mesh:
-            results = face_mesh.process(image[:,:,::-1])
+        #with mp_face_mesh.FaceMesh(static_image_mode = True,
+        #                           max_num_faces = 5,
+        #                           refine_landmarks = True) as face_mesh:
+        #    results = face_mesh.process(image[:,:,::-1])
 
-        results_key = 0
+        #results_key = 0
 
-        # If no faces are found, return -1.
-        if results.multi_face_landmarks is None:
-            self.error_code = -1
-            return
+        ## If no faces are found, return -1.
+        #if results.multi_face_landmarks is None:
+        #    self.error_code = -1
+        #    return
 
-        # If multiple faces are found, get the index of the centermost face.
-        if len(results.multi_face_landmarks) > 1:
-            image_center = tuple(np.array(image.shape[1::-1]) / 2)
-            # Landmarks 475 and 470 are points roughly near the center of each eye.
-            # Rough face centers are calculated by taking the average of the x- and y- coordinates of these landmarks.
-            rough_face_centers = [np.sum((np.array((face.landmark[475].x, face.landmark[475].y)),
-                                          np.array((face.landmark[470].x, face.landmark[470].y))), axis = 0) / 2\
-                                 for face in results.multi_face_landmarks]
-            # MediaPipe uses image normalized coordinates, so they must be converted back to pixel coordinates.
-            rough_face_centers_pixel = [ft.normal_to_pixel(f[0], f[1], image.shape[1], image.shape[0]) for f in
-                                        rough_face_centers]
-            results_key = ft.get_index_center_face(image_center, rough_face_centers_pixel)
+        ## If multiple faces are found, get the index of the centermost face.
+        #if len(results.multi_face_landmarks) > 1:
+        #    image_center = tuple(np.array(image.shape[1::-1]) / 2)
+        #    # Landmarks 475 and 470 are points roughly near the center of each eye.
+        #    # Rough face centers are calculated by taking the average of the x- and y- coordinates of these landmarks.
+        #    rough_face_centers = [np.sum((np.array((face.landmark[475].x, face.landmark[475].y)),
+        #                                  np.array((face.landmark[470].x, face.landmark[470].y))), axis = 0) / 2\
+        #                         for face in results.multi_face_landmarks]
+        #    # MediaPipe uses image normalized coordinates, so they must be converted back to pixel coordinates.
+        #    rough_face_centers_pixel = [ft.normal_to_pixel(f[0], f[1], image.shape[1], image.shape[0]) for f in
+        #                                rough_face_centers]
+        #    results_key = ft.get_index_center_face(image_center, rough_face_centers_pixel)
 
-        self.mp_details = results.multi_face_landmarks[results_key]
+        #self.mp_details = results.multi_face_landmarks[results_key]
         return
     
     def _dlib_align(self):
@@ -269,7 +276,7 @@ class ImagePreprocessor:
 
         angle, direction = ft.get_angle_from_eyes(eye_centers[0], eye_centers[1])
 
-        self.aligned_image = ft.rotate_from_angle(image, tuple(np.array(image.shape[1::-1]) / 2), angle, direction)
+        self.aligned_image = ft.rotate_from_angle(self.image, tuple(np.array(self.image.shape[1::-1]) / 2), angle, direction)
 
         return
     
@@ -303,7 +310,12 @@ class ImagePreprocessor:
 
         return: (x_min, x_max, y_min, y_max) tuple of ints representing facial region for use in numpy slicing
         """
-        self.facial_area = self.rf_details['facial_area']
+        x_min = self.rf_details['facial_area'][0]
+        x_max = self.rf_details['facial_area'][2]
+        y_min = self.rf_details['facial_area'][1]
+        y_max = self.rf_details['facial_area'][3]
+        
+        self.facial_region = x_min, x_max, y_min, y_max
         return
     
     def _get_mediapipe_region(self, image):
@@ -324,7 +336,7 @@ class ImagePreprocessor:
         y_min = np.clip(0, int(np.round(min([k.y for k in self.mp_details.landmark]) * image.shape[0])), image.shape[0])
         y_max = np.clip(0, int(np.round(max([k.y for k in self.mp_details.landmark]) * image.shape[0])), image.shape[0])
 
-        self.facial_area = x_min, x_max, y_min, y_max
+        self.facial_region = x_min, x_max, y_min, y_max
         return
     
     def _align_image(self, backend = ['dlib', 'retinaface', 'mediapipe']):
@@ -413,8 +425,8 @@ class ImagePreprocessor:
                 if self.mp_details is None:
                     continue
                 self._get_mediapipe_region(self.aligned_image)
-                self.cropped_image = self.aligned_image[self.facial_area[2]:self.facial_area[3],
-                                           self.facial_area[0]:self.facial_area[1], :]
+                self.cropped_image = self.aligned_image[self.facial_region[2]:self.facial_region[3],
+                                           self.facial_region[0]:self.facial_region[1], :]
                 self.c_backend = b
                 return
 
@@ -423,18 +435,18 @@ class ImagePreprocessor:
                 if self.rf_details is None:
                     continue            
                 self._get_retinaface_region()
-                self.cropped_image = self.aligned_image[self.facial_area[2]:self.facial_area[3],
-                                           self.facial_area[0]:self.facial_area[1], :]
+                self.cropped_image = self.aligned_image[self.facial_region[2]:self.facial_region[3],
+                                           self.facial_region[0]:self.facial_region[1], :]
                 self.c_backend = b
                 return
 
             if b == 'dlib':
-                self._get_dlib_faces(self.aligned_image, self.shape_predictor_path)
+                self._get_dlib_faces(self.aligned_image)
                 if self.dlib_details is None:
                     continue            
-                self.get_dlib_region()
-                self.cropped_image = self.aligned_image[self.facial_area[2]:self.facial_area[3],
-                                           self.facial_area[0]:self.facial_area[1], :]
+                self._get_dlib_region()
+                self.cropped_image = self.aligned_image[self.facial_region[2]:self.facial_region[3],
+                                           self.facial_region[0]:self.facial_region[1], :]
                 self.c_backend = b
                 return
 

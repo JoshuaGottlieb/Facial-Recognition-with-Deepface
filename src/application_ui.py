@@ -13,10 +13,9 @@ import cv2
 import firebase_admin
 from firebase_admin import credentials, firestore
 import numpy as np
-from face_api import get_image_vector, init_model
+from modules.face_api import init_model, find_image_match
 import os
 import re
-
 
 class RoundedButton(ButtonBehavior, Label):
     def __init__(self, **kwargs):
@@ -44,10 +43,14 @@ class DeepFaceApp(App):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # Initialize Firebase
-        cred = credentials.Certificate("serviceAccountKey.json")
+        cred = credentials.Certificate("./serviceAccountKey.json")
         firebase_admin.initialize_app(cred)
         self.db = firestore.client()
-        self.model = init_model()
+        self.model = init_model('../pretrained_models/VGGFace2_DeepFace_weights_val-0.9034.h5')
+        # Get all documents from the 'vectors' collection
+        snapshots = self.db.collection('vectors').get()
+        docs = [x.to_dict() for x in snapshots]
+        self.vector_dict = {list(x.keys())[0]:list(x.values())[0] for x in docs}
         self.match_result = None
 
     def build(self):
@@ -69,15 +72,15 @@ class DeepFaceApp(App):
         self.matched_image = Image(size_hint=(0.3, 0.3), pos_hint={'center_x': 0.5, 'y': 0.35})
 
         # Capture button
-        capture_button = RoundedButton(text='Capture Image', size_hint=(0.2, 0.1), pos_hint={'center_x': 0.3, 'y': 0.02})
+        capture_button = RoundedButton(text='Capture Image', size_hint=(0.2, 0.1), pos_hint={'center_x': 0.5, 'y': 0.02})
         capture_button.bind(on_press=self.capture_image)
 
-        # Sign up button
-        signup_button = RoundedButton(text='Sign Up', size_hint=(0.2, 0.1), pos_hint={'center_x': 0.7, 'y': 0.02})
-        signup_button.bind(on_press=self.show_signup_popup)
+        ## Sign up button
+        #signup_button = RoundedButton(text='Sign Up', size_hint=(0.2, 0.1), pos_hint={'center_x': 0.7, 'y': 0.02})
+        #signup_button.bind(on_press=self.show_signup_popup)
 
         self.layout.add_widget(capture_button)
-        self.layout.add_widget(signup_button)
+        #self.layout.add_widget(signup_button)
 
         # Start the camera automatically
         self.start_camera()
@@ -90,7 +93,7 @@ class DeepFaceApp(App):
     def update(self, dt):
         ret, frame = self.capture.read()
         if ret:
-            SIMPLEX, 1, (0, 255, 0), 2)
+            #SIMPLEX, 1, (0, 255, 0), 2
             # Convert it to texture
             buf = cv2.flip(frame, 0).tobytes()
             image_texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt='bgr')
@@ -111,37 +114,32 @@ class DeepFaceApp(App):
             self.start_camera()
 
     def process_captured_image(self):
-        # Get vector for captured image
-        captured_vector = get_image_vector("captured_image.jpg", self.model)
         # Match with vectors in Firestore
-        self.match_result = self.match_vector(captured_vector)
-        if self.match_result:
-            self.label.text = f"Match found: {self.match_result}"
-            self.match_label.text = f"Match found: {self.match_result}"
-            self.display_matched_image(self.match_result)
+        self.match_vector()
+
+        if type(self.match_result) != str:
+            self.label.text = f"Match found: {self.match_result[0]}"
+            self.match_label.text = f"Distance: {self.match_result[1]}"
+            self.display_matched_image(self.match_result[0])
         else:
             self.label.text = "No match found"
-            self.match_label.text = "No match found"
+            self.match_label.text = f"{self.match_result}"
             self.clear_matched_image()
 
     def clear_matched_image(self):
         # Clear the texture of the matched image
         self.matched_image.texture = None
 
-    def match_vector(self, captured_vector):
-        threshold = 0.6  # Adjust this threshold as needed
-        # Get all documents from the 'vectors' collection
-        docs = self.db.collection('vectors').get()
-        for doc in docs:
-            data = doc.to_dict()
-            for key, stored_vector in data.items():
-                similarity = self.cosine_similarity(captured_vector, np.array(stored_vector))
-                if similarity > threshold:
-                    return key.split('+')[0]  # Return the image name
-        return None
-
-    def cosine_similarity(self, a, b):
-        return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
+    def match_vector(self):       
+        results = find_image_match("captured_img.jpg", self.vector_dict,
+                                   model = self.model, shape_predictor_path = './pretrained_models/shape_predictor_5_face_landmarks.dat')
+        
+        if type(results) == str:
+            self.match_result = results
+            return
+        
+        self.match_result = results[0][0]
+        return
 
     def extract_image_filename(text):
         # Split the text into parts
@@ -152,7 +150,6 @@ class DeepFaceApp(App):
                 return part
         # Return None if no image file name is found
         return None
-
 
     def extract_image_filename(self, text):
         # Regular expression to match the image file name ending with .jpg
@@ -180,26 +177,26 @@ class DeepFaceApp(App):
             self.layout.add_widget(self.matched_image)
 
 
-    def show_signup_popup(self, instance):
-        popup_layout = BoxLayout(orientation='vertical', spacing=10, padding=10)
-        self.name_input = TextInput(hint_text='Enter name')
-        self.email_input = TextInput(hint_text='Enter email')
-        popup_layout.add_widget(self.name_input)
-        popup_layout.add_widget(self.email_input)
-        submit_button = RoundedButton(text='Submit', size_hint=(1, 0.3))
-        submit_button.bind(on_press=self.submit_signup)
-        popup_layout.add_widget(submit_button)
-        self.popup = Popup(title='Sign Up', content=popup_layout, size_hint=(0.8, 0.4))
-        self.popup.open()
+    #def show_signup_popup(self, instance):
+    #    popup_layout = BoxLayout(orientation='vertical', spacing=10, padding=10)
+    #    self.name_input = TextInput(hint_text='Enter name')
+    #    self.email_input = TextInput(hint_text='Enter email')
+    #    popup_layout.add_widget(self.name_input)
+    #    popup_layout.add_widget(self.email_input)
+    #    submit_button = RoundedButton(text='Submit', size_hint=(1, 0.3))
+    #    submit_button.bind(on_press=self.submit_signup)
+    #    popup_layout.add_widget(submit_button)
+    #    self.popup = Popup(title='Sign Up', content=popup_layout, size_hint=(0.8, 0.4))
+    #    self.popup.open()
 
-    def submit_signup(self, instance):
-        name = self.name_input.text
-        email = self.email_input.text
-        if name and email:
-            self.label.text = f'Signed up: {name}, {email}'
-            self.popup.dismiss()
-        else:
-            self.label.text = 'Please enter both name and email'
+    #def submit_signup(self, instance):
+    #    name = self.name_input.text
+    #    email = self.email_input.text
+    #    if name and email:
+    #        self.label.text = f'Signed up: {name}, {email}'
+    #        self.popup.dismiss()
+    #    else:
+    #        self.label.text = 'Please enter both name and email'
 
 if __name__ == '__main__':
     DeepFaceApp().run()

@@ -1,13 +1,12 @@
 import firebase_admin
 from firebase_admin import credentials, firestore
 import uuid
-from face_api import get_image_vector
+from modules.face_api import init_model, get_image_vector
 import os
+import cv2
 import tensorflow as tf
 import numpy as np
 import shutil
-
-print(tf.__version__)
 
 cred = credentials.Certificate("serviceAccountKey.json")
 firebase_admin.initialize_app(cred)
@@ -22,12 +21,18 @@ destination_folder = '../data/dummy_dataset/input_images'
 # Reference to your Firestore collection
 collection_ref = db.collection('vectors')
 
+# Model for vectorization
+model = init_model('../pretrained_models/VGGFace2_DeepFace_weights_val-0.9034.h5')
+
+# Get image_names
+image_names = os.listdir(image_folder)
+
 # Loop through each image in the folder
-for image_name in os.listdir(image_folder):
+for i, image_name in enumerate(image_names):
     image_path = os.path.join(image_folder, image_name)
 
     # Get the image vector
-    image_vector = get_image_vector(image_path)
+    image_vector = get_image_vector(image_path, model = model, shape_predictor_path = '../pretrained_models/shape_predictor_5_face_landmarks.dat')
 
     # Convert numpy array to list
     image_vector_list = image_vector.tolist()
@@ -37,7 +42,7 @@ for image_name in os.listdir(image_folder):
 
     # Create a dictionary to store in Firestore
     data = {
-        image_name+unique_id: image_vector_list,
+        image_name + unique_id: image_vector_list,
     }
 
     # Add the data to Firestore
