@@ -31,6 +31,7 @@ class ImageVectorizer:
         self.model.load_weights(self.weights_path)
         return
 
+    # Expects a preprocessed image. Performs Tensorflow conversions needed to send the image through the model.
     def _prep_for_deepface(self, image):
         return tf.expand_dims(tf.cast(image, tf.float32) / 255.0, axis = 0)
 

@@ -347,10 +347,6 @@ class ImagePreprocessor:
             image: numpy array representing the input image
             backend: str or list of designated backends to use for aligning images in order of preference.
                      defaults to ['dlib', 'retinaface', 'mediapipe']
-
-        return: numpy array representing the rotated image, and the used backend as (rotated image, backend);
-                if no valid backends are submitted or backend is an invalid type, returns -1;
-                if no backends are able to detect faces, returns -1
         """
 
         self._clear_backend_details()
@@ -390,7 +386,7 @@ class ImagePreprocessor:
                 self.a_backend = b
                 return
 
-        # If no backends found faces, return -1.
+        # If no backends found faces, set error_code to -1.
         self.error_code = -1
         return
     
@@ -402,10 +398,6 @@ class ImagePreprocessor:
             image: numpy array representing the input image
             backend: str or list of designated backends to use for cropping images in order of preference.
                      defaults to ['mediapipe', 'retinaface', 'dlib']
-
-        return: numpy array representing the cropped image, and the used backend as (cropped image, backend);
-                if no valid backends are submitted or backend is an invalid type, returns -1;
-                if no backends are able to detect faces, returns -1
         """
         self._clear_backend_details()
         self._clear_error_code()
@@ -450,7 +442,7 @@ class ImagePreprocessor:
                 self.c_backend = b
                 return
 
-        # If no backends found faces, return -1.   
+        # If no backends found faces, set error_code to -1.   
         self.error_code = -1
         return
     
