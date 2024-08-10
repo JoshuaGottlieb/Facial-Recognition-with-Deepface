@@ -129,12 +129,12 @@ def find_image_match(image_path, db_vectors, model = None, metric = 'cos', prepr
     for key, value in db_vectors.items():
         if metric == 'cos':
             distance = utils.cosine_distance(vector, value)
+        elif metric == 'l2':
+            distance = utils.l2_distance(vector, value)
         else:
             print("Invalid metric. Defaulting to cosine distances.")
             metric = 'cos'
             distance = utils.cosine_distance(vector, value)
-#         elif metric == 'l2':
-#             distance = utils.l2_distance(vector, value)
         
         ids.append(key)
         distances.append(distance)
@@ -143,12 +143,6 @@ def find_image_match(image_path, db_vectors, model = None, metric = 'cos', prepr
     distances = np.array(distances)
     # Select match_num indices from the match_num smallest distances
     possible_indices = np.argpartition(distances, match_num)[:match_num]
-    
-    # Check against thresholds for matches
-#     for i in range(0, threshold_strictness):
-#         match_indices = np.nonzero(distances[possible_indices] < thresholds[i])
-#         if len(match_indices[0]) != 0:
-#             break
     
     match_indices = np.nonzero(distances[possible_indices] < thresholds[threshold_strictness - 1])
     
